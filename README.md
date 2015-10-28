@@ -36,3 +36,6 @@ concurrent-player
 * StmPlayer
 * ReadWriteLockedPlayer
 
+####Ошибки
+https://github.com/SBozhko/concurrent-player/blob/master/core/src/main/java/me/sbozhko/test/AtomicsPlayer.java
+Этот класс не корректен с точки зрения JMM, потому что не гарантирует атомарность обновления переменных points и kudos. Читающий поток может увидеть промежуточное состояние обновления, даже несмотря на synchronized блок и CAS'ы. Так как чтения переменных просходят вне synchronized блока, то нет отношения happens-before между методами getPoints, getKudos и update. СAS гарантирует видимость(за счет volatile) и атомарность обновления отдельных переменных, но не атомарность обоих! Более правильным дизайном будет завести внутрениий класс State c final полями points и kudos и обновлять ссылку на него через AtomicReference. В этом случае synchronized блок будет не нужен, так как AtomicReference будет гарантировать атомарность, а final поля видимость обновлений.
